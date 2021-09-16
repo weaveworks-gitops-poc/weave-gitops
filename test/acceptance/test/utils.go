@@ -289,8 +289,10 @@ func getGitHubRepoVisibility(org string, repo string) string {
 
 	orgInfo, err := gitProvider.OrgRepositories().Get(context.Background(), orgRef)
 	Expect(err).ShouldNot(HaveOccurred())
+
 	visibility := string(*orgInfo.Get().Visibility)
 	log.Infof("Repo visibility private=%s", visibility)
+
 	return visibility
 }
 
@@ -313,8 +315,10 @@ func getGitLabRepoVisibility(org string, repo string) string {
 
 	orgInfo, err := gitProvider.OrgRepositories().Get(context.Background(), orgRef)
 	Expect(err).ShouldNot(HaveOccurred())
+
 	visibility := string(*orgInfo.Get().Visibility)
 	log.Infof("Repo visibility private=%s", visibility)
+
 	return visibility
 }
 
@@ -757,23 +761,25 @@ func createGitHubRepository(repoName, branch string, private bool) error {
 	}); err != nil {
 		return fmt.Errorf("error creating repo %s", err)
 	}
-	fmt.Printf("repo %s created ...\n", repoName)
 
+	fmt.Printf("repo %s created ...\n", repoName)
 	fmt.Printf("validating access to the repo %s ...\n", repoName)
+
 	err = utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
 		_, err := gitProvider.OrgRepositories().Get(ctx, orgRef)
 		return err
 	})
+
 	if err != nil {
 		return fmt.Errorf("error validating access to the repository %w", err)
 	}
+
 	fmt.Printf("repo %s is accessible through the api ...\n", repoName)
 
 	return nil
 }
 
 func createGitLabRepository(repoName string, private bool) error {
-
 	visibility := gitprovider.RepositoryVisibilityPublic
 	if private {
 		visibility = gitprovider.RepositoryVisibilityPrivate
@@ -810,7 +816,9 @@ func createGitLabRepository(repoName string, private bool) error {
 	}
 
 	ctx := context.Background()
+
 	fmt.Printf("creating repo %s ...\n", repoName)
+
 	if err := utils.WaitUntil(os.Stdout, time.Second, THIRTY_SECOND_TIMEOUT, func() error {
 		_, err := gitProvider.OrgRepositories().Create(ctx, orgRef, repoInfo, repoCreateOpts)
 		if err != nil && strings.Contains(err.Error(), "rate limit exceeded") {

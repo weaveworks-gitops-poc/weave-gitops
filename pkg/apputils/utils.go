@@ -178,6 +178,7 @@ func getAuthService(ctx context.Context, providerUrl string) (auth.AuthService, 
 	if err != nil {
 		return nil, fmt.Errorf("error normalizing url: %w", err)
 	}
+
 	gitProvider, providerErr := auth.GetGitProvider(ctx, normalizedUrl.String())
 	if providerErr != nil {
 		return nil, fmt.Errorf("error obtaining git provider token: %w", providerErr)
