@@ -376,7 +376,7 @@ var _ = Describe("ApplicationsServer", func() {
 				secretKey := rand.String(20)
 
 				appFactory := &apputilsfakes.FakeAppFactory{}
-				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+				appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
 					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
 				}
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
@@ -472,7 +472,7 @@ var _ = Describe("ApplicationsServer", func() {
 				}
 
 				appFactory := &apputilsfakes.FakeAppFactory{}
-				appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+				appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
 					return app.New(ctx, nil, nil, nil, nil, nil, kubeClient, nil), nil
 				}
 				appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
@@ -533,7 +533,7 @@ var _ = Describe("Applications handler", func() {
 		}
 
 		appFactory := &apputilsfakes.FakeAppFactory{}
-		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+		appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
 			return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
 		}
 		appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
@@ -597,7 +597,7 @@ var _ = Describe("Applications handler", func() {
 			},
 		}
 
-		appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+		appFactory.GetAppServiceStub = func(ctx context.Context, url, configUrl, namespace string, b bool) (app.AppService, error) {
 			return app.New(ctx, nil, nil, nil, gitProviders, nil, kubeClient, nil), nil
 		}
 
