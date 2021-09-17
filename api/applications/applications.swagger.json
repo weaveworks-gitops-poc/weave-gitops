@@ -48,6 +48,7 @@
         ]
       },
       "post": {
+        "summary": "AddApplication adds an Application to a cluster via GitOps.",
         "operationId": "Applications_AddApplication",
         "responses": {
           "200": {
@@ -410,6 +411,9 @@
         },
         "branch": {
           "type": "string"
+        },
+        "autoMerge": {
+          "type": "boolean"
         }
       }
     },
@@ -419,8 +423,8 @@
         "success": {
           "type": "boolean"
         },
-        "pullRequestUrl": {
-          "type": "string"
+        "application": {
+          "$ref": "#/definitions/v1Application"
         }
       }
     },

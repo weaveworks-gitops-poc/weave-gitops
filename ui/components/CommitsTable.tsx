@@ -49,7 +49,7 @@ function CommitsTable({ className, app, onAuthClick }: Props) {
     );
   }, [app]);
 
-  if (loading) {
+  if ((!commits && !error) || loading) {
     return (
       <Flex wide center>
         <CircularProgress />

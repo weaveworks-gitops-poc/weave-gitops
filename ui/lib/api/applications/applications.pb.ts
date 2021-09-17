@@ -71,11 +71,12 @@ export type AddApplicationRequest = {
   path?: string
   url?: string
   branch?: string
+  autoMerge?: boolean
 }
 
 export type AddApplicationResponse = {
   success?: boolean
-  pullRequestUrl?: string
+  application?: Application
 }
 
 export type Commit = {

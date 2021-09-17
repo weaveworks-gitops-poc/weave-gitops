@@ -100,6 +100,9 @@ service Applications {
         };
     }
 
+    /*
+    * AddApplication adds an Application to a cluster via GitOps.
+    */
     rpc AddApplication(AddApplicationRequest) returns (AddApplicationResponse) {
         option (google.api.http) = {
             post : "/v1/applications"
@@ -161,11 +164,12 @@ message AddApplicationRequest {
     string path      = 3;
     string url       = 4;
     string branch    = 5;
+    bool   autoMerge = 6;
 }
 
 message AddApplicationResponse {
-    bool   success        = 1;
-    string pullRequestUrl = 2;
+    bool        success        = 1;
+    Application application    = 2;
 }
 
 message Commit {

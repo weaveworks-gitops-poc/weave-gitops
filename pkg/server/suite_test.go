@@ -9,15 +9,9 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
-	"github.com/weaveworks/weave-gitops/pkg/flux"
-	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
-	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
-	"github.com/weaveworks/weave-gitops/pkg/osys"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
-	"github.com/weaveworks/weave-gitops/pkg/testutils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,7 +19,6 @@ import (
 	pb "github.com/weaveworks/weave-gitops/pkg/api/applications"
 	"github.com/weaveworks/weave-gitops/pkg/apputils/apputilsfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
 	corev1 "k8s.io/api/core/v1"
@@ -115,24 +108,24 @@ var _ = BeforeEach(func() {
 
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
 
-	osysClient := osys.New()
+	// osysClient := osys.New()
 
 	gp = &gitprovidersfakes.FakeGitProvider{}
 
 	appFactory := &apputilsfakes.FakeAppFactory{}
-	appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
-		return &app.App{
-			Context:     ctx,
-			AppGit:      &gitfakes.FakeGit{},
-			ConfigGit:   &gitfakes.FakeGit{},
-			Flux:        flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
-			Kube:        k,
-			Logger:      &loggerfakes.FakeLogger{},
-			Osys:        osysClient,
-			GitProvider: gp,
-		}, nil
-		// return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
-	}
+	// appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
+	// 	return &app.App{
+	// 		Context:     ctx,
+	// 		AppGit:      &gitfakes.FakeGit{},
+	// 		ConfigGit:   &gitfakes.FakeGit{},
+	// 		Flux:        flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
+	// 		Kube:        k,
+	// 		Logger:      &loggerfakes.FakeLogger{},
+	// 		Osys:        osysClient,
+	// 		GitProvider: gp,
+	// 	}, nil
+	// 	// return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
+	// }
 	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 		return k, nil
 	}

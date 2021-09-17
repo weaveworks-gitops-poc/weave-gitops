@@ -229,7 +229,7 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 }
 
 func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddApplicationRequest) (*pb.AddApplicationResponse, error) {
-	appSrv, err := s.appFactory.GetAppService(ctx, msg.Name, msg.Namespace)
+	appSrv, err := s.appFactory.GetAppService(ctx, msg.Url, msg.Url, msg.Namespace, false)
 	if err != nil {
 		return nil, fmt.Errorf("could not create app service: %w", err)
 	}
@@ -246,13 +246,20 @@ func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddAppli
 		Path:             msg.Path,
 		GitProviderToken: token.AccessToken,
 		Branch:           msg.Branch,
+		AutoMerge:        msg.AutoMerge,
 	}
 
 	if err := appSrv.Add(params); err != nil {
 		return nil, fmt.Errorf("error adding app: %w", err)
 	}
 
-	return &pb.AddApplicationResponse{Success: true, PullRequestUrl: ""}, nil
+	return &pb.AddApplicationResponse{
+		Success: true,
+		Application: &pb.Application{
+			Name:      msg.Name,
+			Namespace: msg.Namespace,
+		},
+	}, nil
 }
 
 //Until the middleware is done this function will not be able to get the token and will fail
@@ -275,21 +282,17 @@ func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommits
 		PageToken:        pageToken,
 	}
 
-	appService, appErr := s.appFactory.GetAppService(ctx, params.Name, params.Namespace)
+	app := &wego.Application{}
+	if err := s.kube.Get(ctx, types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}, app); err != nil {
+		return nil, fmt.Errorf("could not get app: %w", err)
+	}
+
+	appService, appErr := s.appFactory.GetAppService(ctx, app.Spec.URL, app.Spec.ConfigURL, app.Namespace, app.IsHelmRepository())
 	if appErr != nil {
 		return nil, fmt.Errorf("failed to create app service: %w", appErr)
 	}
 
-	application, err := appService.Get(types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
-	if err != nil {
-		return nil, fmt.Errorf("unable to get application for %s %w", params.Name, err)
-	}
-
-	if application.Spec.SourceType == wego.SourceTypeHelm {
-		return nil, fmt.Errorf("unable to get commits for a helm chart")
-	}
-
-	commits, err := appService.GetCommits(params, application)
+	commits, err := appService.GetCommits(params, app)
 	if err != nil {
 		return nil, err
 	}

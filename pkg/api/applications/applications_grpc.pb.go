@@ -49,6 +49,8 @@ type ApplicationsClient interface {
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(ctx context.Context, in *GetGithubAuthStatusRequest, opts ...grpc.CallOption) (*GetGithubAuthStatusResponse, error)
+	//
+	// AddApplication adds an Application to a cluster via GitOps.
 	AddApplication(ctx context.Context, in *AddApplicationRequest, opts ...grpc.CallOption) (*AddApplicationResponse, error)
 }
 
@@ -176,6 +178,8 @@ type ApplicationsServer interface {
 	// This token will expired in 15 minutes, after which the user will need to complete the flow again
 	// to do Git Provider operations.
 	GetGithubAuthStatus(context.Context, *GetGithubAuthStatusRequest) (*GetGithubAuthStatusResponse, error)
+	//
+	// AddApplication adds an Application to a cluster via GitOps.
 	AddApplication(context.Context, *AddApplicationRequest) (*AddApplicationResponse, error)
 	mustEmbedUnimplementedApplicationsServer()
 }
