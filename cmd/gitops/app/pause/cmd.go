@@ -6,9 +6,12 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/cmd/wego/version"
 	"github.com/weaveworks/weave-gitops/pkg/apputils"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 var params app.PauseParams
@@ -32,7 +35,19 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	params.Namespace, _ = cmd.Parent().Flags().GetString("namespace")
 	params.Name = args[0]
 
-	appService, appError := apputils.GetAppService(ctx, params.Name, params.Namespace)
+	kube, _, err := kube.NewKubeHTTPClient()
+	if err != nil {
+		return fmt.Errorf("failed to create kube client: %w", err)
+	}
+
+	appObj, err := kube.GetApplication(ctx, types.NamespacedName{Name: params.Name, Namespace: params.Namespace})
+	if err != nil {
+		return fmt.Errorf("could not get application: %w", err)
+	}
+
+	isHelm := appObj.Spec.DeploymentType == v1alpha1.DeploymentTypeHelm
+
+	appService, appError := apputils.GetAppService(ctx, appObj.Spec.URL, appObj.Spec.ConfigURL, params.Namespace, isHelm)
 	if appError != nil {
 		return fmt.Errorf("failed to create app service: %w", appError)
 	}
