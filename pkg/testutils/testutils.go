@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
@@ -12,6 +13,7 @@ import (
 	wego "github.com/weaveworks/weave-gitops/api/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta1"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -101,4 +103,25 @@ func MakeFakeLogr() *fakelogr.FakeLogger {
 	}
 
 	return log
+}
+
+type LocalFluxRunner struct {
+	runner.Runner
+}
+
+func (r *LocalFluxRunner) Run(command string, args ...string) ([]byte, error) {
+	cmd := "../flux/bin/flux"
+
+	return r.Runner.Run(cmd, args...)
+}
+
+type DummyPullRequest struct {
+}
+
+func (d DummyPullRequest) Get() gitprovider.PullRequestInfo {
+	return gitprovider.PullRequestInfo{WebURL: ""}
+}
+
+func (d DummyPullRequest) APIObject() interface{} {
+	return nil
 }

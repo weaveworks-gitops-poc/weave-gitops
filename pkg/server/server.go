@@ -228,6 +228,33 @@ func (s *applicationServer) GetApplication(ctx context.Context, msg *pb.GetAppli
 	}}, nil
 }
 
+func (s *applicationServer) AddApplication(ctx context.Context, msg *pb.AddApplicationRequest) (*pb.AddApplicationResponse, error) {
+	appSrv, err := s.appFactory.GetAppService(ctx, msg.Name, msg.Namespace)
+	if err != nil {
+		return nil, fmt.Errorf("could not create app service: %w", err)
+	}
+
+	token, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		return nil, grpcStatus.Error(codes.Unauthenticated, fmt.Sprintf("token error: %s", err.Error()))
+	}
+
+	params := app.AddParams{
+		Name:             msg.Name,
+		Namespace:        msg.Namespace,
+		Url:              msg.Url,
+		Path:             msg.Path,
+		GitProviderToken: token.AccessToken,
+		Branch:           msg.Branch,
+	}
+
+	if err := appSrv.Add(params); err != nil {
+		return nil, fmt.Errorf("error adding app: %w", err)
+	}
+
+	return &pb.AddApplicationResponse{Success: true, PullRequestUrl: ""}, nil
+}
+
 //Until the middleware is done this function will not be able to get the token and will fail
 func (s *applicationServer) ListCommits(ctx context.Context, msg *pb.ListCommitsRequest) (*pb.ListCommitsResponse, error) {
 	providerToken, err := middleware.ExtractProviderToken(ctx)

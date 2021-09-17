@@ -65,6 +65,19 @@ export type GetApplicationResponse = {
   application?: Application
 }
 
+export type AddApplicationRequest = {
+  name?: string
+  namespace?: string
+  path?: string
+  url?: string
+  branch?: string
+}
+
+export type AddApplicationResponse = {
+  success?: boolean
+  pullRequestUrl?: string
+}
+
 export type Commit = {
   hash?: string
   date?: string
@@ -165,5 +178,8 @@ export class Applications {
   }
   static GetGithubAuthStatus(req: GetGithubAuthStatusRequest, initReq?: fm.InitReq): Promise<GetGithubAuthStatusResponse> {
     return fm.fetchReq<GetGithubAuthStatusRequest, GetGithubAuthStatusResponse>(`/v1/applications/auth_providers/github/status`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static AddApplication(req: AddApplicationRequest, initReq?: fm.InitReq): Promise<AddApplicationResponse> {
+    return fm.fetchReq<AddApplicationRequest, AddApplicationResponse>(`/v1/applications`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

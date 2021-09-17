@@ -99,6 +99,13 @@ service Applications {
             body: "*"
         };
     }
+
+    rpc AddApplication(AddApplicationRequest) returns (AddApplicationResponse) {
+        option (google.api.http) = {
+            post : "/v1/applications"
+            body: "*"
+        };
+    }
 }
 
 // This object represents a single condition for a Kubernetes object.
@@ -146,6 +153,19 @@ message GetApplicationRequest {
 
 message GetApplicationResponse {
     Application application = 1;
+}
+
+message AddApplicationRequest {
+    string name      = 1;
+    string namespace = 2;
+    string path      = 3;
+    string url       = 4;
+    string branch    = 5;
+}
+
+message AddApplicationResponse {
+    bool   success        = 1;
+    string pullRequestUrl = 2;
 }
 
 message Commit {

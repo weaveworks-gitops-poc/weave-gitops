@@ -9,8 +9,15 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/rand"
 
+	"github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/git/gitfakes"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
+	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
+	"github.com/weaveworks/weave-gitops/pkg/osys"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
+	"github.com/weaveworks/weave-gitops/pkg/testutils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -52,6 +59,7 @@ var scheme *apiruntime.Scheme
 var k kube.Kube
 var k8sManager ctrl.Manager
 var ghAuthClient *authfakes.FakeGithubAuthClient
+var gp *gitprovidersfakes.FakeGitProvider
 
 func bufDialer(context.Context, string) (net.Conn, error) {
 	return lis.Dial()
@@ -107,9 +115,23 @@ var _ = BeforeEach(func() {
 
 	k = &kube.KubeHTTP{Client: k8sClient, ClusterName: testClustername}
 
+	osysClient := osys.New()
+
+	gp = &gitprovidersfakes.FakeGitProvider{}
+
 	appFactory := &apputilsfakes.FakeAppFactory{}
 	appFactory.GetAppServiceStub = func(ctx context.Context, name, namespace string) (app.AppService, error) {
-		return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
+		return &app.App{
+			Context:     ctx,
+			AppGit:      &gitfakes.FakeGit{},
+			ConfigGit:   &gitfakes.FakeGit{},
+			Flux:        flux.New(osysClient, &testutils.LocalFluxRunner{Runner: &runner.CLIRunner{}}),
+			Kube:        k,
+			Logger:      &loggerfakes.FakeLogger{},
+			Osys:        osysClient,
+			GitProvider: gp,
+		}, nil
+		// return app.New(ctx, nil, nil, nil, nil, nil, k, nil), nil
 	}
 	appFactory.GetKubeServiceStub = func() (kube.Kube, error) {
 		return k, nil

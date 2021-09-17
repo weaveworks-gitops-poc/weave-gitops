@@ -34,6 +34,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/services/app"
 	fakelogr "github.com/weaveworks/weave-gitops/pkg/vendorfakes/logr"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -356,6 +357,37 @@ var _ = Describe("ApplicationsServer", func() {
 			Expect(ok).To(BeTrue(), "could not get status from err")
 			Expect(st.Message()).To(ContainSubstring(someErr.Error()))
 			Expect(res).To(BeNil())
+		})
+	})
+
+	Describe("AddApplication", func() {
+		FIt("adds an app with no git repo", func() {
+			ctx := context.Background()
+			name := "my-app"
+			appRequest := &pb.AddApplicationRequest{
+				Name:      name,
+				Namespace: namespace.Name,
+				Url:       "ssh://git@github.com/some-org/somerepo.git",
+				Path:      "./k8s/mydir",
+				Branch:    "main",
+			}
+			gp.GetRepoVisibilityStub = func(s string) (*gitprovider.RepositoryVisibility, error) {
+				return gitprovider.RepositoryVisibilityVar(gitprovider.RepositoryVisibilityInternal), nil
+			}
+
+			gp.CreatePullRequestToUserRepoStub = func(urr gitprovider.UserRepositoryRef, s1, s2 string, cf []gitprovider.CommitFile, s3, s4, s5 string) (gitprovider.PullRequest, error) {
+				return testutils.DummyPullRequest{}, nil
+			}
+
+			md := metadata.New(map[string]string{"Authorization": "mytoken"})
+			ctx = metadata.NewOutgoingContext(ctx, md)
+			res, err := appsClient.AddApplication(ctx, appRequest)
+			Expect(err).NotTo((HaveOccurred()))
+			Expect(res.Success).To(BeTrue())
+
+			appObj := &wego.Application{}
+			Expect(k8sClient.Get(ctx, types.NamespacedName{Name: name, Namespace: namespace.Name}, appObj))
+			Expect(appObj.Spec.Path).To(Equal(appRequest.Path))
 		})
 	})
 
