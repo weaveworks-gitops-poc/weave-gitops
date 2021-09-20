@@ -291,7 +291,6 @@ func getGitHubRepoVisibility(org string, repo string) string {
 	Expect(err).ShouldNot(HaveOccurred())
 
 	visibility := string(*orgInfo.Get().Visibility)
-	log.Infof("Repo visibility private=%s", visibility)
 
 	return visibility
 }
@@ -317,7 +316,6 @@ func getGitLabRepoVisibility(org string, repo string) string {
 	Expect(err).ShouldNot(HaveOccurred())
 
 	visibility := string(*orgInfo.Get().Visibility)
-	log.Infof("Repo visibility private=%s", visibility)
 
 	return visibility
 }

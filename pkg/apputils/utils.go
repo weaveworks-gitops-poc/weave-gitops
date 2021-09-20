@@ -132,6 +132,11 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, nil
 	}
 
+	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(providerUrl)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error normalizing url: %w", err)
+	}
+
 	kube, _, kubeErr := kube.NewKubeHTTPClient()
 	if kubeErr != nil {
 		return nil, nil, nil, fmt.Errorf("error creating k8s http client: %w", kubeErr)
@@ -142,7 +147,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, fmt.Errorf("error getting target name: %w", targetErr)
 	}
 
-	authsvc, authsvcErr := getAuthService(ctx, providerUrl)
+	authsvc, authsvcErr := getAuthService(ctx, normalizedUrl)
 	if authsvcErr != nil {
 		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", authsvcErr)
 	}
@@ -173,13 +178,8 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 	return appClient, configClient, authsvc.GetGitProvider(), nil
 }
 
-func getAuthService(ctx context.Context, providerUrl string) (auth.AuthService, error) {
-	normalizedUrl, err := gitproviders.NewNormalizedRepoURL(providerUrl)
-	if err != nil {
-		return nil, fmt.Errorf("error normalizing url: %w", err)
-	}
-
-	gitProvider, providerErr := auth.GetGitProvider(ctx, normalizedUrl.String())
+func getAuthService(ctx context.Context, normalizedUrl gitproviders.NormalizedRepoURL) (auth.AuthService, error) {
+	gitProvider, providerErr := auth.GetGitProvider(ctx, normalizedUrl)
 	if providerErr != nil {
 		return nil, fmt.Errorf("error obtaining git provider token: %w", providerErr)
 	}
