@@ -62,7 +62,6 @@ func getGitProviderWithClients(
 	osysClient osys.Osys,
 	authHandler BlockingCLIAuthHandler,
 	logger logger.Logger) (gitproviders.GitProvider, error) {
-
 	token, tokenErr := osysClient.GetGitProviderToken(providerName)
 
 	if tokenErr == osys.ErrNoGitProviderTokenSet {
