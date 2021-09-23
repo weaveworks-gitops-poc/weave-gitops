@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/app"
+	beta "github.com/weaveworks/weave-gitops/cmd/gitops/beta/cmd"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/flux"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/install"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/ui"
@@ -97,6 +98,7 @@ func main() {
 	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
 
 	rootCmd.AddCommand(install.Cmd)
+	rootCmd.AddCommand(beta.Cmd)
 	rootCmd.AddCommand(uninstall.Cmd)
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(flux.Cmd)
