@@ -14,13 +14,16 @@ import (
 	"github.com/weaveworks/weave-gitops/cmd/gitops/uninstall"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	fluxBin "github.com/weaveworks/weave-gitops/pkg/flux"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/osys"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
+	"k8s.io/client-go/rest"
 )
 
 var options struct {
-	verbose bool
+	verbose           bool
+	overrideInCluster bool
 }
 
 var rootCmd = &cobra.Command{
@@ -76,6 +79,9 @@ var rootCmd = &cobra.Command{
 			fmt.Fprintf(os.Stderr, "Error: %v\n", nserr)
 			os.Exit(1)
 		}
+		if options.overrideInCluster {
+			kube.InClusterConfig = func() (*rest.Config, error) { return nil, rest.ErrNotInCluster }
+		}
 	},
 }
 
@@ -96,6 +102,7 @@ func main() {
 	fluxClient.SetupBin()
 	rootCmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "Enable verbose output")
 	rootCmd.PersistentFlags().String("namespace", "wego-system", "gitops runtime namespace")
+	rootCmd.PersistentFlags().BoolVar(&options.overrideInCluster, "override-in-cluster", false, "override running in cluster check")
 
 	rootCmd.AddCommand(install.Cmd)
 	rootCmd.AddCommand(beta.Cmd)
