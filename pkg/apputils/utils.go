@@ -142,7 +142,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 		return nil, nil, nil, fmt.Errorf("error getting target name: %w", targetErr)
 	}
 
-	authsvc, authsvcErr := getAuthService(ctx, providerUrl)
+	authsvc, authsvcErr := GetAuthService(ctx, providerUrl)
 	if authsvcErr != nil {
 		return nil, nil, nil, fmt.Errorf("error creating auth service: %w", authsvcErr)
 	}
@@ -173,7 +173,7 @@ func getGitClients(ctx context.Context, url, configUrl, namespace string, isHelm
 	return appClient, configClient, authsvc.GetGitProvider(), nil
 }
 
-func getAuthService(ctx context.Context, providerUrl string) (auth.AuthService, error) {
+func GetAuthService(ctx context.Context, providerUrl string) (auth.AuthService, error) {
 	gitProvider, providerErr := auth.GetGitProvider(ctx, providerUrl)
 	if providerErr != nil {
 		return nil, fmt.Errorf("error obtaining git provider token: %w", providerErr)

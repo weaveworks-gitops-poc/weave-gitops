@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/logger/loggerfakes"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 
@@ -317,7 +318,7 @@ func (a *App) addAppWithConfigInAppRepo(info *AppResourceInfo, params AddParams,
 	if params.Dir == "" {
 		a.Logger.Actionf("Cloning %s", info.Spec.URL)
 
-		remover, err := a.cloneRepo(a.ConfigGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
+		remover, err := CloneRepo(a.ConfigGit, info.Spec.URL, info.Spec.Branch, params.DryRun)
 		if err != nil {
 			return fmt.Errorf("failed to clone application repo: %w", err)
 		}
@@ -371,7 +372,7 @@ func (a *App) addAppWithConfigInExternalRepo(info *AppResourceInfo, params AddPa
 		return fmt.Errorf("could not generate target GitOps Automation manifests: %w", err)
 	}
 
-	remover, err := a.cloneRepo(a.ConfigGit, info.Spec.ConfigURL, configBranch, params.DryRun)
+	remover, err := CloneRepo(a.ConfigGit, info.Spec.ConfigURL, configBranch, params.DryRun)
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
 	}
@@ -497,7 +498,10 @@ func (a *App) generateExternalRepoManifests(info *AppResourceInfo, branch string
 }
 
 func (a *App) commitAndPush(client git.Git, filters ...func(string) bool) error {
-	a.Logger.Actionf("Committing and pushing gitops updates for application")
+	return CommitAndPush(client, a.Logger, filters...)
+}
+func CommitAndPush(client git.Git, logger logger.Logger, filters ...func(string) bool) error {
+	logger.Actionf("Committing and pushing gitops updates for application")
 
 	_, err := client.Commit(git.Commit{
 		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
@@ -508,13 +512,13 @@ func (a *App) commitAndPush(client git.Git, filters ...func(string) bool) error 
 	}
 
 	if err == nil {
-		a.Logger.Actionf("Pushing app changes to repository")
+		logger.Actionf("Pushing app changes to repository")
 
 		if err = client.Push(context.Background()); err != nil {
 			return fmt.Errorf("failed to push changes: %w", err)
 		}
 	} else {
-		a.Logger.Successf("App is up to date")
+		logger.Successf("App is up to date")
 	}
 
 	return nil
@@ -572,7 +576,7 @@ func (a *App) applyToCluster(info *AppResourceInfo, dryRun bool, manifests ...[]
 	return nil
 }
 
-func (a *App) cloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), error) {
+func CloneRepo(client git.Git, url string, branch string, dryRun bool) (func(), error) {
 	if dryRun {
 		return func() {}, nil
 	}

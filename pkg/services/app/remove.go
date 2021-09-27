@@ -74,7 +74,7 @@ func (a *App) Remove(params RemoveParams) error {
 		return fmt.Errorf("failed to obtain config URL and branch: %w", err)
 	}
 
-	remover, err := a.cloneRepo(a.ConfigGit, cloneURL, branch, params.DryRun)
+	remover, err := CloneRepo(a.ConfigGit, cloneURL, branch, params.DryRun)
 
 	if err != nil {
 		return fmt.Errorf("failed to clone configuration repo: %w", err)
